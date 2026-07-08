@@ -1,0 +1,138 @@
+import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useAuthStore } from '../../stores/authStore';
+import { useNavigate } from 'react-router-dom';
+import { invoke } from '../../lib/tauri';
+
+export default function Login() {
+  const { t } = useTranslation();
+  const login = useAuthStore((state) => state.login);
+  const navigate = useNavigate();
+
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [needsSetup, setNeedsSetup] = useState(false);
+  const [setupPassword, setSetupPassword] = useState('');
+
+  useEffect(() => {
+    invoke('check_system_setup').then((isSetup: unknown) => {
+      if (!isSetup) {
+        setNeedsSetup(true);
+      }
+    }).catch(console.error);
+  }, []);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    try {
+      const user: any = await invoke('login', { username, password });
+      login(user, 'local-session-token');
+      navigate('/');
+    } catch (err: any) {
+      setError(err);
+    }
+  };
+
+  const handleSetup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const msg: string = await invoke('setup_system', { password: setupPassword });
+      alert(msg);
+      setNeedsSetup(false);
+    } catch (err: any) {
+      alert(`Setup failed: ${err}`);
+    }
+  };
+
+  if (needsSetup) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-sm border border-gray-100">
+          <div>
+            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Initial Setup</h2>
+            <p className="mt-2 text-center text-sm text-gray-600">Create an admin password.</p>
+          </div>
+          <form className="mt-8 space-y-6" onSubmit={handleSetup}>
+            <div>
+              <label htmlFor="setupPassword" className="sr-only">Password</label>
+              <input
+                id="setupPassword"
+                type="password"
+                required
+                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                placeholder="New Admin Password"
+                value={setupPassword}
+                onChange={(e) => setSetupPassword(e.target.value)}
+              />
+            </div>
+            <div>
+              <button
+                type="submit"
+                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+              >
+                Complete Setup
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-sm border border-gray-100">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            SubManager
+          </h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            {t('login')}
+          </p>
+        </div>
+        <form className="mt-8 space-y-6" onSubmit={handleLogin}>
+          {error && <div className="text-red-500 text-sm text-center">{error}</div>}
+          <div className="rounded-md shadow-sm -space-y-px">
+            <div>
+              <label htmlFor="username" className="sr-only">{t('username')}</label>
+              <input
+                id="username"
+                name="username"
+                type="text"
+                required
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                placeholder={t('username')}
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="sr-only">{t('password')}</label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                required
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                placeholder={t('password')}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div>
+            <button
+              type="submit"
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              {t('login')}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
