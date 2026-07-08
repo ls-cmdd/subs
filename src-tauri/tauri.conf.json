@@ -23,15 +23,15 @@
       "csp": null
     }
   },
-  ""bundle": {
-  "active": true,
-  "targets": "all",
-  "icon": [
-    "../asset/icons/icon/32x32.png",
-    "../asset/icons/icon/128x128.png",
-    "../asset/icons/icon/128x128@2x.png",
-    "../asset/icons/icon/icon.icns",
-    "../asset/icons/icon/icon.ico"
-  ]
-}
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "../asset/icons/icon/32x32.png",
+      "../asset/icons/icon/128x128.png",
+      "../asset/icons/icon/128x128@2x.png",
+      "../asset/icons/icon/icon.icns",
+      "../asset/icons/icon/icon.ico"
+    ]
+  }
 }
