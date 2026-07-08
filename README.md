@@ -52,3 +52,4 @@ npm run tauri build
 There is a GitHub Action configured in `.github/workflows/release.yml`. Whenever you push a tag that starts with `v` (e.g. `v1.0.0`), the action will build the Windows `.exe` and create a GitHub Release draft.
 # sub
 # sub
+# sub
